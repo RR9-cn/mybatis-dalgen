@@ -1,12 +1,18 @@
 package com.dalgen.mybatis;
 
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 import com.dalgen.mybatis.utils.ConfInit;
+import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import com.dalgen.mybatis.dataloaders.DalgenLoader;
@@ -114,8 +120,27 @@ public class DalgenMojo extends AbstractMojo {
      * @throws MojoFailureException the mojo failure exception
      */
     public void execute() throws MojoExecutionException, MojoFailureException {
-
+        String databaseName = null;
+        String tableName = null;
         configInit(false);
+        Transferable contents = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+        if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            try {
+                // 获取剪贴板中的文本内容
+                String data = (String) contents.getTransferData(DataFlavor.stringFlavor);
+                if (data.contains(":")) {
+                    databaseName = data.split(":")[0];
+                    tableName = data.split(":")[1];
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println(databaseName);
+        System.out.println(tableName);
+
+
 
         if (!outputDirectory.exists()) {
             outputDirectory.mkdirs();
@@ -123,11 +148,16 @@ public class DalgenMojo extends AbstractMojo {
 
         try {
             ConfigUtil.readConfig(config);
-            String _cmd = cmdUtil.consoleInput();
-            if ("q".equals(_cmd)) {
-                getLog().info("alidalgen 放弃生成");
-                return;
+            if (StringUtils.isNotBlank(databaseName) && StringUtils.isNotBlank(tableName)) {
+                cmdUtil.input(databaseName,tableName);
+            }else {
+                String _cmd = cmdUtil.consoleInput();
+                if ("q".equals(_cmd)) {
+                    getLog().info("alidalgen 放弃生成");
+                    return;
+                }
             }
+
             ConfigUtil.dalgenPath = config.getParentFile().getParent();
             executeInit();
             executeGen();

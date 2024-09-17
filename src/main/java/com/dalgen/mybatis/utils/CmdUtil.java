@@ -50,6 +50,17 @@ public class CmdUtil {
         return ConfigUtil.getCmd();
     }
 
+    /**
+     * 获取控制台输入
+     *
+     * @return 控制台命令
+     */
+    public String input(String dbStr,String tableStr) {
+        ConfigUtil.setCurrentDb(dbStr);
+        ConfigUtil.setCmd(tableStr);
+        return ConfigUtil.getCmd();
+    }
+
     private String chooseTableCmd(Scanner cmdIn) {
         System.out.println("输入需要生成的表:");
         System.out.println("===========输入需要生成的表==============");
